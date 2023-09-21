@@ -1,8 +1,8 @@
 import { addMocksToSchema } from '@graphql-tools/mock'
 import { makeExecutableSchema } from '@graphql-tools/schema'
 
-import { mocks } from '../app/mocks'
-import { resolvers } from '../app/resolvers'
+import { mocks } from '../data/mocks'
+import { resolvers } from '../data/resolvers'
 import { typeDefs } from './file-system'
 
 export { schema }

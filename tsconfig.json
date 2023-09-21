@@ -10,8 +10,9 @@
     "module": "Node16"
   },
   "include": [
-    "src/*.ts"
-, "src/app/index.ts"  ],
+    "src/*.ts",
+    "src/core/index.ts"
+  ],
   "exclude": [
     "node_modules"
   ],

@@ -1,0 +1,21 @@
+extend type Query {
+  you: Project
+}
+
+extend type Mutation {
+  me: Project
+}
+
+
+# extend type Input {
+
+# }
+
+# extend type Subscription {
+  
+# }
+
+type Project {
+  id: ID!
+  projectPath: String
+}

@@ -1,7 +1,6 @@
 import { IMockStore } from '@graphql-tools/mock'
 import { fetch } from '@whatwg-node/fetch'
 
-import { user } from '../store/user'
 
 interface QueryBody {
   name: string
@@ -10,11 +9,11 @@ interface QueryBody {
 }
 
 export function seedStore(store: IMockStore): void {
-  store.set('User', user.id, user)
+  store.set('Project', '1', {})
 }
 
-export async function queryStagingStore<T = any>(body: QueryBody): Promise<T> {
-  const response = await fetch('https://app.staging.splashfinancial.com/graphql', {
+export async function queryExternalStore<T = any>(body: QueryBody): Promise<T> {
+  const response = await fetch('', {
     method: 'POST',
     body: JSON.stringify({
       operationName: body.name,

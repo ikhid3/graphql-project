@@ -1,8 +1,6 @@
-schema: https://app.staging.splashfinancial.com/graphql
 generates:
-  src/app/schema.ts:
+  src/data/schema.ts:
+    schema:
+      - "src/services/**/*.graphql"
     plugins:
       - typescript
-  src/app/schema.graphql:
-    plugins:
-      - schema-ast
