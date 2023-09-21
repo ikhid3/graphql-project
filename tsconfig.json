@@ -1,0 +1,19 @@
+{
+  "extends": "@tsconfig/node12/tsconfig.json",
+  "compilerOptions": {
+    "outDir": "dist",
+    "rootDir": ".",
+    "target": "es5",
+    "lib": [
+      "esnext"
+    ],
+    "module": "Node16"
+  },
+  "include": [
+    "src/*.ts"
+, "src/app/index.ts"  ],
+  "exclude": [
+    "node_modules"
+  ],
+  "references": []
+}

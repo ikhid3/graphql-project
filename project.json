@@ -1,0 +1,13 @@
+{
+  "sourceRoot": "packages/graphql-mock-server/src",
+  "projectType": "application",
+  "targets": {
+    "generate-types": {
+      "executor": "@nrwl/workspace:run-commands",
+      "options": {
+        "command": "NODE_TLS_REJECT_UNAUTHORIZED=0 yarn graphql-codegen -c codegen.yml",
+        "cwd": "packages/graphql-mock-server"
+      }
+    }
+  }
+}

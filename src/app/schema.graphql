@@ -1,0 +1,3170 @@
+type Query {
+  """Returns the currently logged-in user."""
+  me: User
+
+  """All schools that Splash Financial Supports"""
+  aggregateSchools: [AggregateSchool!]!
+  bankInfo(application_guid: ID!): BankInfoResponse
+
+  """A list of schools that match the given (partial or complete) name"""
+  schoolsSearch(name: String!): [AggregateSchool!]!
+
+  """Returns a school given its ID"""
+  aggregateSchool(id: ID!): AggregateSchool
+
+  """All degrees that Splash Financial Supports"""
+  degrees(display: Boolean = true, orderBy: [QueryDegreesOrderByOrderByClause!]): [Degree]
+
+  """Returns all employment statuses that Splash Financial Supports."""
+  employment_statuses(display: Boolean = true, orderBy: [QueryEmploymentStatusesOrderByOrderByClause!]): [EmploymentStatusInfo!]!
+
+  """Returns all occupations that Splash Financial Supports."""
+  occupations(display: Boolean = true, orderBy: [QueryOccupationsOrderByOrderByClause!]): [Occupation!]!
+
+  """Returns all active loan servicers that Splash Financial Supports."""
+  servicers(active: Boolean = true, orderBy: [QueryServicersOrderByOrderByClause!]): [LoanServicer!]!
+
+  """
+  Returns all active loan lenders that Splash Financial Supports. Not associated with lenders whose rates appear on the website.
+  """
+  lenders(active: Boolean = true, orderBy: [QueryLendersOrderByOrderByClause!]): [LoanLender!]!
+
+  """Returns the different available types for student loans"""
+  studentLoanTypes(display: Boolean = true, orderBy: [QueryStudentLoanTypesOrderByOrderByClause!]): [LoanType!]!
+
+  """Returns a degree's degree type given its ID"""
+  degreeType(id: ID!): Degree
+
+  """Returns all Laurel Road medical specialities"""
+  laurel_road_medical_specialty: [LaurelRoadMedicalSpecialty!]!
+  master_income_sources(display: Boolean = true): [MasterIncomeSource!]!
+  states: [State!]!
+  rates(id: ID!): [Rate!]
+  borrowerRatesRequest(id: ID!): BorrowerRateRequest
+  personalRates(id: ID!): [Rate!]
+  applicationByGuid(application_guid: ID!): LoanApplication
+  reviewOfferInfo(application_guid: ID!): ReviewOfferInfo
+  applicationById(id: ID!): LoanApplication
+  lenderInfo(id: ID!): Lender
+  softDeniedCosignerInfo(application_guid: ID!): DeniedCosignerInfo
+
+  """Returns the fraud status of a particular userId and appGuid."""
+  fraudStatus(application_guid: ID!): FraudResponse
+  plaidData(application_guid: ID!, plaidItemId: ID!): PlaidDataResponse
+
+  """Returns the matching institutions based on input criteria"""
+  plaidInstitutions(input: PlaidInstitutionsQueryInput): PlaidInstitutionsQueryResponse
+  jobTitle(searchText: String!): [JobTitle!]!
+  loanDetails(application_guid: ID!): LoanDetailsResponse
+
+  """Returns an array of tasks by app guid"""
+  tasksByApplication(application_guid: ID!): [BorrowerTask!]!
+
+  """Returns a task by app guid and task id"""
+  taskById(application_guid: ID!, task_id: ID!): BorrowerTask
+
+  """
+  Returns the rate information for an encrypted BorrowerRate ID that was generated through the affiliate rates API.
+  """
+  ratesApiBorrowerRate(rate_id: String!): RatesAPIBorrowerRateResponse
+
+  """Returns a userById"""
+  getUserById(id: ID!): User
+
+  """
+  Returns the closed loan information for loans originating from a particular partner over a specified period of time.
+  """
+  getAffiliateClosedLoanInfo(partner_id: ID!, product_id: ID!, from_date: DateTime!, to_date: DateTime): [AffiliateClosedLoanInfo]
+  allowableMimeTypesForRestrictedSubtypes: [AllowableTypesBySubtype!]!
+}
+
+"""A user that represents an end user's account."""
+type User {
+  id: ID!
+  email: String!
+
+  """
+  A GUID that can be used to uniquely identify a user. This is what is used to identify/bucket user's via optimizely.
+  """
+  user_token: String!
+  first_name: String!
+  last_name: String!
+  currentLoanApplication: LoanApplication
+
+  """A list of the LoanApplications that belong to the user."""
+  loanApplications: [LoanApplication]
+
+  """
+  A list of messages in the user's "inbox"
+  """
+  messages: [Message]
+
+  """The latest application approval date for the user"""
+  latestApprovalDate: DateTime
+
+  """A list of PartnerTracking records that belong to the user"""
+  partnerTracking: [PartnerTracking]
+  ipAddress: String!
+  suffix: Suffixes
+}
+
+"""
+A LoanApplication that can represent either a Student Loan Refi or Personal Loan Application.
+"""
+type LoanApplication {
+  id: ID!
+  user: User!
+  status_id: ApplicationStatuses!
+  auth_status_id: AuthStatuses @deprecated(reason: "No longer used")
+  success: SuccessStatuses
+  application_guid: String!
+  cosigner_guid: String
+  personalInfo: PersonalInfo
+  created_at: DateTime
+  signoff: DateTime
+  approval_date: DateTime
+  latestAuthStatusDate: DateTime @deprecated(reason: "No longer used")
+  underwritingInfo: UnderwritingInfo
+  educationInfo: EducationInfo
+  employmentInfo: EmploymentInfo
+  incomeInfo: [IncomeInfo]
+  housingInfo: HousingInfo
+  loans: [Loan]
+
+  """Loan amount entered by user during pre-qualification"""
+  total_loan_amount: Float
+  resident_or_fellow: Boolean
+  loan_owners: [LoanOwners!]
+  type: ApplicationType!
+  refinance_reason: String
+  loan_purpose: PersonalLoanPurposes
+  selectedRate: BorrowerRate
+  rateSource: RateSource
+  latestBorrowerRateRequest: BorrowerRateRequest
+
+  """Defines the product type that the loan application belongs to"""
+  product: Products!
+  isActive: Boolean!
+  from_API: Boolean!
+  lenderType: String
+
+  """All documents that have been uploaded by a user"""
+  documents: [Document!]
+
+  """
+  A value representing whether a borrower has incomplete additional document requests
+  """
+  hasIncompleteDocuments: Boolean!
+
+  """
+  A list of tasks that must be completed by the applicant in order for the application to close.
+  """
+  tasks: [BorrowerTask!]!
+
+  """
+  Total amount to be refinanced - sum of balance to refinance on all added loans. Defaults to total loan amount from pre-qualification.
+  """
+  totalRefinanceAmount: Float
+
+  """
+  Only applies to cosigner applications that were denied. Use this when you want to know the reapply date.
+  """
+  cosignerReapplyDate: DateTime
+
+  """
+  Returns a boolean value that determines if an approved application received a counter offer. If not an approved personal loan, it will return false by default.
+  """
+  hasCounterOffer: Boolean!
+
+  """
+  Returns the latest instance Credit Karma request (if one exists) for the application 
+  """
+  latestCreditKarmaRequest: CreditKarmaRequest
+
+  """
+  Returns the latest instance of an Experian request (if one exists) for the application 
+  """
+  latestExperianRequest: ExperianRequest
+
+  """Return the latest Credit Agreement (if one exists) for the application"""
+  creditAgreement: CreditAgreement
+
+  """
+  Returns the Payment Info for the application. These values are 'estimates' until the Credit Agreement is signed
+  """
+  paymentInfo: PaymentInfo
+
+  """
+  Returns info if the loan's lender support auto debit and if the borrower can sign up for autodebit prior to seeing the credit agreement.
+  """
+  autoDebitInfo: AutoDebitInfo
+
+  """
+  Returns info regarding the latest choice a borrower made whether or not to sign up for autopay. A most recent answer of yes will result in the ACH portion of esign being prechecked.
+  """
+  latestIntentToAutopay: IntentToAutopay
+
+  """Returns the direct pay liabilities and allocations for the application"""
+  directPayInfo: DirectPayInfo
+}
+
+"""Application statuses"""
+enum ApplicationStatuses {
+  """User Created"""
+  UserCreated
+
+  """Pre-qualification Personal Information"""
+  PreQualificationPersonalInformation
+
+  """Education Financial"""
+  EducationFinancial
+
+  """Pre-qualification Disclosures"""
+  PreQualificationDisclosures
+
+  """Rates"""
+  Rates
+
+  """Personal Information"""
+  PersonalInformation
+
+  """Housing Information"""
+  Housing
+
+  """Loans"""
+  Loans
+
+  """Disclosures"""
+  Disclosures
+
+  """Upload Center"""
+  UploadCenter
+
+  """Submitted"""
+  Submitted
+
+  """Error"""
+  Error
+
+  """Hard Denied"""
+  HardDenied
+
+  """Soft Denied"""
+  SoftDenied
+
+  """Cannot Retrieve Credit Information"""
+  CannotRetrieveCreditInfo
+
+  """Cosigner Removed"""
+  CosignerRemoved
+
+  """New Email Required"""
+  NewEmailRequired
+
+  """Laurel Road Financial Information"""
+  LaurelRoadFinancialInfo
+
+  """A p i account page"""
+  APIAccountPage
+
+  """Review"""
+  Review
+
+  """No Offers"""
+  NoOffers
+
+  """Sent to Lender"""
+  SentToLender
+
+  """Waiting on Manual Submission"""
+  WaitingOnManualSubmission
+
+  """Manual review"""
+  ManualReview
+
+  """Request to Withdraw"""
+  RequestToWithdraw
+
+  """Scripting"""
+  Scripting
+
+  """Scripting Error"""
+  ScriptingError
+}
+
+"""Auth statuses"""
+enum AuthStatuses {
+  """Pending - Auto Micro Deposits"""
+  PendingAutoMicroDeposits
+
+  """Pass - Auto Micro Deposits"""
+  PassAutoMicroDeposits
+
+  """Fail - Auto Micro Deposits"""
+  FailAutoMicroDeposits
+
+  """Pending - Manual Micro Deposits"""
+  PendingManualMicroDeposits
+
+  """Pass - Manual Micro Deposits"""
+  PassManualMicroDeposits
+
+  """Fail - Manual Micro Deposits"""
+  FailManualMicroDeposits
+
+  """Pass - Instant Auth"""
+  PassInstantAuth
+
+  """Pass - Instant Match"""
+  PassInstantMatch
+}
+
+"""Application success statuses"""
+enum SuccessStatuses {
+  """Denied"""
+  Denied
+
+  """Pre approved"""
+  PreApproved
+
+  """Soft denied"""
+  SoftDenied
+
+  """Manual review"""
+  ManualReview
+
+  """Cancelled"""
+  Cancelled
+
+  """Closed"""
+  Closed
+
+  """Duplicate"""
+  Duplicate
+
+  """Expired"""
+  Expired
+
+  """Pending"""
+  Pending
+
+  """Incomplete"""
+  Incomplete
+
+  """Pending disbursement"""
+  PendingDisbursement
+
+  """Error"""
+  Error
+
+  """Withdrawn"""
+  Withdrawn
+
+  """Approved"""
+  Approved
+
+  """Conditionally approved"""
+  ConditionallyApproved
+
+  """Unverified documents"""
+  UnverifiedDocuments
+
+  """Right to cancel"""
+  RightToCancel
+
+  """Esign"""
+  Esign
+
+  """Unable to log in"""
+  UnableToLogIn
+
+  """Lexis nexis review"""
+  LexisNexisReview
+
+  """Fully disbursed"""
+  FullyDisbursed
+
+  """U w expired"""
+  UWExpired
+
+  """Credit error"""
+  CreditError
+
+  """Purchased"""
+  Purchased
+
+  """Expired loan offer"""
+  ExpiredLoanOffer
+
+  """Verifying funding account"""
+  VerifyingFundingAccount
+}
+
+"""Represents a User's personal information for a given LoanApplication."""
+type PersonalInfo {
+  id: ID!
+  address1: String
+  address2: String
+  city: String
+  state: String
+  zip_code: String
+  phone: String
+  dob: Date
+  months_at_address: Int
+  citizenship: Citizenships
+  resident_alien_min_10_years: Boolean
+  total_assets: Int
+  social_security_last_four: String
+  last_change_of_address: Date
+  permanent_residency_length: PermanentResidencyLengths
+  isSsnVerified: Boolean
+}
+
+"""A date string with format `Y-m-d`, e.g. `2011-05-23`."""
+scalar Date
+
+"""Citizenships"""
+enum Citizenships {
+  """U s citizen"""
+  USCitizen
+
+  """Legal u s resident"""
+  LegalUSResident
+
+  """Visa holder"""
+  VisaHolder
+
+  """Other"""
+  Other
+}
+
+"""Permanent residency lengths"""
+enum PermanentResidencyLengths {
+  """Less than two years"""
+  LessThanTwoYears
+
+  """From two to nine years"""
+  FromTwoToNineYears
+
+  """Ten years or more"""
+  TenYearsOrMore
+}
+
+"""
+A datetime string with format `Y-m-d H:i:s`, e.g. `2018-05-23 13:43:32`.
+"""
+scalar DateTime
+
+"""Describes the attributes of an OnBase Application"""
+type UnderwritingInfo {
+  id: ID!
+  application: LoanApplication!
+  underwritingStage: String!
+  loanConsultant: LosUser!
+  underwritingAnalyst: LosUser!
+  underwriter: LosUser!
+}
+
+type LosUser {
+  username: String
+}
+
+"""Represents a User's education information for a given LoanApplication."""
+type EducationInfo {
+  id: ID!
+  school_id: Int
+  medical_specialty_id: Int
+  training_end_date: Date
+  year_id: Int
+  school_state_id: Int
+  school_number_id: Int
+  graduation_month: Int
+  graduation_year: Int
+  degree: Degree
+  undergraduate_school: String
+  title_4_school_id: Int
+  laurel_road_medical_specialty_id: Int
+  excessive_residency_reason: String
+  associates_experience: Boolean
+  associates_employment_offer: Boolean
+  aggregate_school_id: Int
+  bachelors_employed_in_healthcare: Boolean
+  bachelors_employed_12_months: Boolean
+  application: LoanApplication!
+  aggregate_school: AggregateSchool
+}
+
+"""Describes the attributes of an educational Degree"""
+type Degree {
+  id: ID!
+  degree: String!
+
+  """The name of the degree"""
+  name: String!
+
+  """The type of the degree (i.e. Associates, Bachelors, Graduate)"""
+  type: DegreeType!
+  is_medical: Boolean!
+
+  """The order in which the degree option should be displayed to the user."""
+  order: Int!
+
+  """Whether this degree should be displayed as an option"""
+  shouldDisplay: Boolean!
+}
+
+"""Degree types"""
+enum DegreeType {
+  """Associate"""
+  Associate
+
+  """Bachelors"""
+  Bachelors
+
+  """Graduate"""
+  Graduate
+
+  """No degree"""
+  NoDegree
+}
+
+type AggregateSchool {
+  id: ID!
+  name: String!
+}
+
+"""
+Represents a User's employment information for a given LoanApplication.
+"""
+type EmploymentInfo {
+  id: ID!
+  status: EmploymentStatuses
+  employer_name: String
+  occupation_id: Int
+  phone: String
+  length_of_time_years: Int
+  length_of_time_months: Int
+  pay_months_per_year: Int
+  gross_income: Int
+  job_title: String
+  start_month: Int
+  start_year: Int
+  address: String
+  city: String
+  state_id: Int
+  zip: Int
+  prev_employer_name: String
+  prev_occupation_id: Int
+  prev_job_title: String
+  prev_start_month: Int
+  prev_start_year: Int
+  prev_address: String
+  prev_city: String
+  prev_state_id: Int
+  prev_zip: Int
+  prev_income: Int
+  prev_end_month: Int
+  prev_end_year: Int
+  income_source_id: Int
+  start_date: Date
+  is_travel_pt: Boolean
+  application: LoanApplication!
+}
+
+"""Employment statuses"""
+enum EmploymentStatuses {
+  """Retired"""
+  Retired
+
+  """Unemployed"""
+  Unemployed
+
+  """Salary hourly"""
+  SalaryHourly
+
+  """Self employed"""
+  SelfEmployed
+
+  """Unemployed with income"""
+  UnemployedWithIncome
+
+  """Salary"""
+  Salary
+
+  """Hourly"""
+  Hourly
+
+  """Contractor"""
+  Contractor
+
+  """Student"""
+  Student
+}
+
+"""Represents a User's income information for a given LoanApplication."""
+type IncomeInfo {
+  id: ID
+  amount: Int!
+  master_income_source: MasterIncomeSources
+  application: LoanApplication!
+  deleted_at: DateTime
+}
+
+"""Master income sources"""
+enum MasterIncomeSources {
+  """Alimony"""
+  Alimony
+
+  """Annuity"""
+  Annuity
+
+  """Bonus"""
+  Bonus
+
+  """Child support"""
+  ChildSupport
+
+  """Commission"""
+  Commission
+
+  """Disability"""
+  Disability
+
+  """Investments"""
+  Investments
+
+  """Ira"""
+  IRA
+
+  """Maintenance income"""
+  MaintenanceIncome
+
+  """Multiple"""
+  Multiple
+
+  """Other"""
+  Other
+
+  """Overtime"""
+  Overtime
+
+  """Pension"""
+  Pension
+
+  """Public assistance"""
+  PublicAssistance
+
+  """Retirement income"""
+  RetirementIncome
+
+  """Salary"""
+  Salary
+
+  """Second job"""
+  SecondJob
+
+  """Self employment"""
+  SelfEmployment
+
+  """Social security"""
+  SocialSecurity
+
+  """Tips"""
+  Tips
+
+  """Unemployment"""
+  Unemployment
+
+  """Workers compensation"""
+  WorkersCompensation
+
+  """Military"""
+  Military
+
+  """Partnership or s corp"""
+  PartnershipOrSCorp
+
+  """Rental income"""
+  RentalIncome
+
+  """Non retirement social security"""
+  NonRetirementSocialSecurity
+
+  """Interest"""
+  Interest
+}
+
+"""Represents a User's housing information for a given LoanApplication."""
+type HousingInfo {
+  id: ID!
+  status: HousingStatuses
+  monthly_housing_cost: Int
+  address1: String
+  address2: String
+  city: String
+  state: String
+  zip_code: String
+  previous_address1: String
+  previous_address2: String
+  previous_city: String
+  previous_state: String
+  previous_zip: String
+  length_id: ID
+  previous_length_id: ID
+  comment: String
+}
+
+"""Housing statuses"""
+enum HousingStatuses {
+  """Rent"""
+  Rent
+
+  """Own"""
+  Own
+
+  """Live with family member"""
+  LiveWithFamilyMember
+
+  """Other"""
+  Other
+}
+
+"""Represents a Loan to be refinanced for a Loan Application"""
+type Loan {
+  id: ID!
+  account_number: String!
+  balance: Float!
+  balance_to_refi: Float!
+  interest_rate_bp: Int!
+  lender: LoanLender
+  servicer: LoanServicer
+  source: LoanSources
+  type: LoanTypes
+  servicer_name: String
+  deleted_at: DateTime
+  should_include: Boolean!
+}
+
+"""The lender of a user entered student loan"""
+type LoanLender {
+  id: ID!
+  name: String!
+  active: Boolean!
+}
+
+"""The servicer of a user entered student loan"""
+type LoanServicer {
+  id: ID!
+  name: String!
+  active: Boolean!
+  federal: Boolean!
+}
+
+"""Loan sources"""
+enum LoanSources {
+  """Manually Added"""
+  User
+
+  """Credit bureau"""
+  CreditBureau
+
+  """On base"""
+  OnBase
+
+  """Plaid Verification"""
+  Plaid
+}
+
+"""Loan types"""
+enum LoanTypes {
+  """Federal"""
+  Federal
+
+  """Private"""
+  Private
+}
+
+"""Loan owners"""
+enum LoanOwners {
+  """My Loans (federal, private or both)"""
+  MyLoans
+
+  """My Parent PLUS Loans"""
+  MyParentPlus
+
+  """My parents' Parent PLUS Loans"""
+  MyParentParentPlus
+
+  """Both my loans and my parents' Parent PLUS Loans"""
+  Both
+
+  """My spouse's loans"""
+  MySpousesLoans
+
+  """Loan Transfer (I'm a parent or family member)"""
+  LoanTransfer
+}
+
+"""Application types"""
+enum ApplicationType {
+  """Borrower"""
+  Borrower
+
+  """Cosigner"""
+  Cosigner
+}
+
+"""Personal loan purposes"""
+enum PersonalLoanPurposes {
+  """debt consolidation"""
+  DebtConsolidation
+
+  """refinance credit cards"""
+  RefinanceCreditCards
+
+  """home improvement"""
+  HomeImprovement
+
+  """major purchase"""
+  MajorPurchase
+
+  """moving expenses"""
+  MovingExpenses
+
+  """medical or dental"""
+  MedicalOrDental
+
+  """car"""
+  Car
+
+  """transportation"""
+  Transportation
+
+  """special occasion"""
+  SpecialOccasion
+
+  """business expenses"""
+  BusinessExpenses
+
+  """none of the above"""
+  NoneOfTheAbove
+
+  """other"""
+  Other
+}
+
+"""
+A BorrowerRate is an instance of a Rate that has been offered to a User.
+"""
+type BorrowerRate {
+  id: ID!
+  application_id: LoanApplication!
+  borrower_rates_request_id: BorrowerRateRequest
+  rateBp: Int!
+  rateCalculationType: RateCalculationTypes!
+  rateType: RateTypes!
+  termYears: Int!
+  tier: Int
+  margin: Int
+  degree_type: String
+  ach_discount_amount: Float
+  displayed: Boolean
+  selected: Boolean
+  monthly_payment_cents: Int
+  created_at: DateTime
+  updated_at: DateTime
+  dti: Float
+  offerUrl: String
+  ratesApiOfferUrl: String
+  apr: Float!
+
+  """
+  The discounted rate is the apr on an offer with the ACH discount applied
+  """
+  discountedRate: Float!
+
+  """
+  Indicates if the rate is expired (from a rate sheet other than the currently active one)
+  """
+  isExpired: Boolean
+
+  """The unique GUID for this particular borrower rate."""
+  borrower_rate_guid: String
+
+  """The origination fee for this borrower rate."""
+  origination_fee: Float!
+
+  """The maximum loan amount that can be refinanced with the offer"""
+  maximum_loan_amount: Int
+
+  """The minimum loan amount that can be refinanced with the offer"""
+  minimum_loan_amount: Int
+
+  """Indicates A Topup Offer"""
+  is_topup_offer: Boolean
+
+  """Amount disbursed to borrower after fees are taken out."""
+  netDisbursedAmount: Float!
+  netDisbursedAmountCents: Int!
+
+  """Total loan amount requested from borrower"""
+  totalLoanAmount: Float!
+  totalLoanAmountCents: Int!
+}
+
+"""
+A BorrowerRatesRequest represents a request to each active Lender at the time of pre-qualification submission.
+"""
+type BorrowerRateRequest {
+  id: ID!
+  application_id: LoanApplication!
+  rate_source_id: RateSource
+  loan_amount_cents: Int
+  borrowerRates: [Rate]
+  lowestRatePerTerm: [Rate]
+  applicationDenialInfos: [ApplicationDenialInfo]
+  creditKarmaRequest: CreditKarmaRequest
+  experianRequest: ExperianRequest
+  created_at: DateTime
+  updated_at: DateTime
+}
+
+"""Defines the Rate Source for rates returned to the RatesAPI"""
+type RateSource {
+  id: ID!
+  source: String
+  display: String
+  isPlatform: Boolean
+
+  """Defines the lender information that belongs to this rate source."""
+  lender: Lender
+}
+
+"""
+A Lender represents a Bank, Credit Union, or Financial Instution that offers Rates.
+"""
+type Lender {
+  id: ID!
+  display_name: String!
+
+  """Refers to the global identity for Lender within Splash"""
+  global_identity: String!
+
+  """Indicates whether the lender participates in Direct Pay"""
+  direct_pay_enabled: Boolean!
+  logo_condensed: String!
+  logo_full: String!
+  summary: String!
+  hasMembershipAccount: Boolean!
+  hasCheckingAccount: Boolean!
+  hasMedicalProgram: Boolean!
+  checkingAccountRequirements: String
+  offline: Boolean!
+  disclosures: String!
+  terms_checklist: [String!]
+  is_platform: Boolean!
+  privacy_policy_url: String
+  ach_discount_text: String
+  servicer: Servicer
+  finalInformation: FinalInformationByProduct!
+
+  """This field represents whether loan offers through a lender are secure"""
+  is_secured: Boolean
+  autoDebitInfo: AutoDebitInfo
+}
+
+type Servicer {
+  StudentLoanRefinancing: ServicerResponse
+  PersonalLoan: ServicerResponse
+}
+
+type ServicerResponse {
+  display_name: String!
+  logo: String!
+  phone_number: String
+  url: String
+  login_url: String
+  email: String
+}
+
+type FinalInformationByProduct {
+  PersonalLoan: FinalInformation!
+}
+
+type FinalInformation {
+  markdown: String!
+  modals: [FinalInformationModal!]
+}
+
+type FinalInformationModal {
+  key: String!
+  header: String
+  body: String!
+}
+
+"""Defines the info auto debit info attached to a Loan Application"""
+type AutoDebitInfo {
+  """Defines if the lender's servicer support auto debits"""
+  enabled: Boolean
+
+  """
+  Defines if the borrower is able to opt-in for auto debit prior to seeing their credit agreement
+  """
+  preselect_enabled: Boolean
+}
+
+"""An Interest Rate that encapsulates an offer."""
+type Rate {
+  id: ID!
+  rate_type: RateTypes!
+  term_years: Int!
+  lender: Lender!
+  apr: Float!
+  rate_bp: Int!
+  interest_rate: Float!
+  ach_discount: Float!
+  ach_discount_bp: Int!
+
+  """
+  The discounted rate is the apr on an offer with the ACH discount applied
+  """
+  discountedRate: Float!
+  discountedRateBp: Int!
+  monthly_payment: Float!
+  total_interest_paid: Float!
+  total_loan_amount: Float!
+  totalLoanAmount: Float!
+  origination_fee: Float!
+  total_loan_cost: Float!
+  total_finance_charge: Float!
+  netDisbursedAmount: Float!
+
+  """
+  The new total loan amount needed so the borrower can receive their entire original requested loan amount dispersed to them, adjusting for origination fees.
+  A null value indicates this offer is ineligible for a top-up offer.
+  """
+  top_up_loan_amount: Float
+
+  """Indicates A Topup Offer"""
+  is_topup_offer: Boolean
+  monthly_payment_cents: Int!
+  total_interest_paid_cents: Int!
+  total_loan_amount_cents: Int!
+  totalLoanAmountCents: Int!
+  origination_fee_cents: Int!
+  total_loan_cost_cents: Int!
+  total_finance_charge_cents: Int!
+  netDisbursedAmountCents: Int!
+  url: String
+  disclosures: String
+  selected: Boolean!
+
+  """
+  Indicates if the rate is expired (from a rate sheet other than the currently active one)
+  """
+  isExpired: Boolean
+
+  """The unique GUID for this particular borrower rate."""
+  borrower_rate_guid: String
+
+  """The maximum loan amount that can be refinanced with the offer"""
+  maximum_loan_amount: Int
+
+  """The minimum loan amount that can be refinanced with the offer"""
+  minimum_loan_amount: Int
+  tier: Int
+  margin: Int
+  degree_type: String
+}
+
+"""Rate types"""
+enum RateTypes {
+  """Fixed"""
+  Fixed
+
+  """Variable"""
+  Variable
+}
+
+"""
+An ApplicationDenialInfo represents why a borrower was denied from a given Lender.
+"""
+type ApplicationDenialInfo {
+  description: String!
+  rate_source_id: Int!
+}
+
+type CreditKarmaRequest {
+  id: String!
+  ck_tracking_id: String!
+  request_type: String!
+  offer_amount: Currency
+  offer_term_months: Int
+  offer_apr_bp: Int
+  income_band: String
+  housing_payment_band: String
+  home_ownership_status: Boolean
+  loan_purpose: String
+  model_id: Int
+  campaign: String
+  approving_model_id: Int
+  application: LoanApplication
+  borrowerRatesRequest: BorrowerRateRequest
+}
+
+type Currency {
+  currency_amount: String!
+  currency_code: String!
+}
+
+type ExperianRequest {
+  id: String!
+  experian_tracking_id: String!
+  offer_amount: Currency
+  offer_total_cost: Currency
+  offer_monthly_payment: Currency
+  offer_term_months: Int
+  offer_apr_bp: Int
+  application: LoanApplication
+  borrowerRatesRequest: BorrowerRateRequest
+}
+
+"""Rate calculation types"""
+enum RateCalculationTypes {
+  """Api"""
+  API
+
+  """Dti"""
+  DTI
+
+  """Fcf"""
+  FCF
+
+  """Splel"""
+  SPLEL
+}
+
+"""Products"""
+enum Products {
+  """medical"""
+  MedicalResidentRefi
+
+  """student"""
+  StudentLoanRefinancing
+
+  """personal"""
+  PersonalLoan
+
+  """private"""
+  PrivateStudentLoan
+}
+
+type Document {
+  id: ID!
+  document_type_id: ID!
+  document_type_display_name: String
+  document_subtype_id: ID
+  document_subtype_display_name: String
+  document_status_id: DocumentStatuses!
+  path: String!
+  original_filename: String
+  mime_type: String
+}
+
+"""Document statuses"""
+enum DocumentStatuses {
+  """Error"""
+  Error
+
+  """Processing"""
+  Processing
+
+  """Received"""
+  Received
+
+  """Uploaded"""
+  Uploaded
+
+  """Approved"""
+  Approved
+}
+
+union BorrowerTask = DocumentSignTask | IncomeTask | IdentificationTask | ReviewTask | FundingTask | AdditionalDocumentUploadTask | SubmitApplicationTask | PersonalInfoTask | LoansTask | DirectPayTask | DirectPayConfirmationTask
+
+"""A task that requires the user to sign documents."""
+type DocumentSignTask implements CommonTask {
+  id: ID!
+  status: TaskStatuses!
+  title: String!
+  description: String
+  dependencies: [ID!]
+  dependent_types: [String!]
+  metadata: TaskMetadata
+  isBlocked: Boolean
+  assignee: Assignee
+}
+
+interface CommonTask {
+  id: ID!
+  status: TaskStatuses!
+  title: String!
+  description: String
+  dependent_types: [String!]
+
+  """
+  A flat list of preerequisite tasks that must be complete before the current task can be completed.
+  """
+  dependencies: [ID!]
+
+  """if the task is blocked and unable to be completed due to dependencies"""
+  isBlocked: Boolean
+  assignee: Assignee
+}
+
+"""Task status"""
+enum TaskStatuses {
+  """Created"""
+  CREATED
+
+  """Complete"""
+  COMPLETE
+
+  """Deleted"""
+  DELETED
+}
+
+type Assignee {
+  id: ID!
+  type: String!
+}
+
+type TaskMetadata {
+  docusign_link: String
+  documents: [String]
+}
+
+"""Describes a task for the customer to verify his/her income."""
+type IncomeTask implements CommonTask {
+  id: ID!
+  status: TaskStatuses!
+  title: String!
+  description: String
+  dependencies: [ID!]
+  dependent_types: [String!]
+  metadata: IncomeTaskMetadata
+  isBlocked: Boolean
+  assignee: Assignee
+}
+
+type IncomeTaskMetadata {
+  documentRequests: [DocumentRequest!]
+  isPlaidEligible: Boolean
+}
+
+type DocumentRequest {
+  title: String!
+  description: String
+  documentType: Int!
+  documentTypeName: String
+  additionalDocumentRequestId: Int
+  groups: [DocumentGroup!]!
+}
+
+type DocumentGroup {
+  title: String!
+  description: String
+  requirements: [Requirement!]!
+}
+
+type Requirement {
+  documentSubType: Int!
+  documentSubTypeName: String
+  acceptedMimeTypes: [String!]
+  title: String!
+}
+
+"""A task that requires the user to verify his/her identity."""
+type IdentificationTask implements CommonTask {
+  id: ID!
+  status: TaskStatuses!
+  title: String!
+  description: String
+  dependencies: [ID!]
+  dependent_types: [String!]
+  metadata: IdentificationTaskMetadata
+  isBlocked: Boolean
+  assignee: Assignee
+}
+
+type IdentificationTaskMetadata {
+  documentRequests: [DocumentRequest!]
+}
+
+"""Describes a task for the customer to review and confirm information."""
+type ReviewTask implements CommonTask {
+  id: ID!
+  status: TaskStatuses!
+  title: String!
+  description: String
+  dependencies: [ID!]
+  dependent_types: [String!]
+  metadata: TaskMetadata
+  isBlocked: Boolean
+  assignee: Assignee
+}
+
+"""
+Describes a task for the customer to verify his/her bank account where funds will be deposited.
+"""
+type FundingTask implements CommonTask {
+  id: ID!
+  status: TaskStatuses!
+  title: String!
+  description: String
+  dependencies: [ID!]
+  dependent_types: [String!]
+  metadata: FundingTaskMetadata
+  isBlocked: Boolean
+  assignee: Assignee
+}
+
+type FundingTaskMetadata {
+  plaidItemId: ID
+  verificationStatus: PlaidVerificationStatus
+}
+
+enum PlaidVerificationStatus {
+  pending_manual_verification
+  manually_verified
+  pending_automatic_verification
+  automatically_verified
+  verification_expired
+  verification_failed
+}
+
+"""Describes a task for the customer to upload a document."""
+type AdditionalDocumentUploadTask implements CommonTask {
+  id: ID!
+  status: TaskStatuses!
+  title: String!
+  description: String
+  dependencies: [ID!]
+  dependent_types: [String!]
+  metadata: AdditionalDocumentUploadTaskMetadata
+  isBlocked: Boolean
+  assignee: Assignee
+}
+
+type AdditionalDocumentUploadTaskMetadata {
+  documentRequests: [DocumentRequest!]
+}
+
+"""
+A task that requires the user to submit their application to underwriting
+"""
+type SubmitApplicationTask implements CommonTask {
+  id: ID!
+  status: TaskStatuses!
+  title: String!
+  description: String
+  dependent_types: [String!]
+  dependencies: [ID!]
+  isBlocked: Boolean
+  assignee: Assignee
+}
+
+"""Describes a task for the customer answer personal info"""
+type PersonalInfoTask implements CommonTask {
+  id: ID!
+  status: TaskStatuses!
+  title: String!
+  description: String
+  dependencies: [ID!]
+  dependent_types: [String!]
+  isBlocked: Boolean
+  assignee: Assignee
+}
+
+"""Describes a task for the customer to enter their loan information"""
+type LoansTask implements CommonTask {
+  id: ID!
+  status: TaskStatuses!
+  title: String!
+  description: String
+  dependencies: [ID!]
+  dependent_types: [String!]
+  isBlocked: Boolean
+  assignee: Assignee
+}
+
+"""A task that allows a user allocate funds to payoff accounts."""
+type DirectPayTask implements CommonTask {
+  id: ID!
+  status: TaskStatuses!
+  title: String!
+  description: String
+  dependencies: [ID!]
+  dependent_types: [String!]
+  isBlocked: Boolean
+  assignee: Assignee
+}
+
+"""A task that allows a user to confirm allocations before dispersal."""
+type DirectPayConfirmationTask implements CommonTask {
+  id: ID!
+  status: TaskStatuses!
+  title: String!
+  description: String
+  dependencies: [ID!]
+  dependent_types: [String!]
+  isBlocked: Boolean
+  assignee: Assignee
+}
+
+"""Represents an application's latest associated credit agreement"""
+type CreditAgreement {
+  id: ID!
+  first_payment_date: Date!
+  last_payment_date: Date!
+  term: Int!
+}
+
+"""Represents an application's latest payment info"""
+type PaymentInfo {
+  first_payment_date: Date!
+  last_payment_date: Date!
+  monthly_payment: Float!
+  final_payment: Float!
+}
+
+type IntentToAutopay {
+  id: String!
+  created_at: DateTime!
+  application_guid: String!
+  application_version: Int!
+  intends_to_autopay: Boolean!
+}
+
+type DirectPayInfo {
+  opt_in_status: DirectPayOptInStatuses
+  liabilities_status: DirectPayLiabilityStatuses
+  confirmation_status: DirectPayConfirmationStatuses
+  liabilities: [DirectPayLiability]
+  liabilityInfo: DirectPayLiabilityInfo
+  allocations: [DirectPayAllocation]
+}
+
+"""Direct pay opt in statuses"""
+enum DirectPayOptInStatuses {
+  """Opted in"""
+  OPTED_IN
+
+  """Opted out"""
+  OPTED_OUT
+}
+
+"""Direct pay liability statuses"""
+enum DirectPayLiabilityStatuses {
+  """Fetching"""
+  FETCHING
+
+  """Success"""
+  SUCCESS
+
+  """Error"""
+  ERROR
+}
+
+"""Direct pay confirmation statuses"""
+enum DirectPayConfirmationStatuses {
+  """Confirmed"""
+  CONFIRMED
+}
+
+type DirectPayLiability {
+  name: String!
+  account_number: String!
+  balance: Currency!
+  opened_at: DateTime
+  id: String!
+}
+
+type DirectPayLiabilityInfo {
+  status: DirectPayLiabilityStatuses
+  liabilities: [DirectPayLiability]
+}
+
+type DirectPayAllocation {
+  balance: Currency
+  id: String!
+}
+
+"""A message is a piece of communication / correspondence to an end user."""
+type Message {
+  """The date that the message was generated"""
+  date: DateTime!
+
+  """The subject/title of the message"""
+  title: String!
+
+  """The body of the message. This is a string encoded as markdown."""
+  body: String!
+  attachments: [DocumentAttachment]
+}
+
+"""A DocumentAttachment are downloadable attachments to messages"""
+type DocumentAttachment {
+  """The title of the document that should be displayed to the user"""
+  title: String!
+
+  """The direct-download link to the document"""
+  uri: String!
+}
+
+type PartnerTracking {
+  id: ID!
+  user: User!
+  partner: Partner!
+  sub_id: String
+}
+
+"""
+Partner Tracking and Partner information returned for affiliate rates API
+"""
+type Partner {
+  id: ID!
+  partner_name: String!
+  impact_tracking_base_url: String
+}
+
+"""Suffixes"""
+enum Suffixes {
+  """I"""
+  I
+
+  """Ii"""
+  II
+
+  """Iii"""
+  III
+
+  """Iv"""
+  IV
+
+  """Jr"""
+  JR
+
+  """Sr"""
+  SR
+
+  """None"""
+  NONE
+}
+
+type BankInfoResponse {
+  account_type: AchAccountTypes
+  routing_number: String
+  account_number: String
+}
+
+"""Ach account types"""
+enum AchAccountTypes {
+  """Checking account"""
+  CheckingAccount
+
+  """Savings account"""
+  SavingsAccount
+}
+
+"""Order by clause for Query.degrees.orderBy."""
+input QueryDegreesOrderByOrderByClause {
+  """The column that is used for ordering."""
+  column: QueryDegreesOrderByColumn!
+
+  """The direction that is used for ordering."""
+  order: SortOrder!
+}
+
+"""Allowed column names for Query.degrees.orderBy."""
+enum QueryDegreesOrderByColumn {
+  ORDER
+}
+
+"""Directions for ordering a list of records."""
+enum SortOrder {
+  """Sort records in ascending order."""
+  ASC
+
+  """Sort records in descending order."""
+  DESC
+}
+
+"""Order by clause for Query.employment_statuses.orderBy."""
+input QueryEmploymentStatusesOrderByOrderByClause {
+  """The column that is used for ordering."""
+  column: QueryEmploymentStatusesOrderByColumn!
+
+  """The direction that is used for ordering."""
+  order: SortOrder!
+}
+
+"""Allowed column names for Query.employment_statuses.orderBy."""
+enum QueryEmploymentStatusesOrderByColumn {
+  ORDER
+}
+
+"""Describes the attributes of an employment status"""
+type EmploymentStatusInfo {
+  status: EmploymentStatuses
+
+  """
+  The friendly name of the status that could be used to display to a user.
+  """
+  description: String!
+}
+
+"""Order by clause for Query.occupations.orderBy."""
+input QueryOccupationsOrderByOrderByClause {
+  """The column that is used for ordering."""
+  column: QueryOccupationsOrderByColumn!
+
+  """The direction that is used for ordering."""
+  order: SortOrder!
+}
+
+"""Allowed column names for Query.occupations.orderBy."""
+enum QueryOccupationsOrderByColumn {
+  OCCUPATION
+}
+
+"""Represents an Occupation."""
+type Occupation {
+  id: ID!
+  occupation: String!
+}
+
+"""Order by clause for Query.servicers.orderBy."""
+input QueryServicersOrderByOrderByClause {
+  """The column that is used for ordering."""
+  column: QueryServicersOrderByColumn!
+
+  """The direction that is used for ordering."""
+  order: SortOrder!
+}
+
+"""Allowed column names for Query.servicers.orderBy."""
+enum QueryServicersOrderByColumn {
+  NAME
+}
+
+"""Order by clause for Query.lenders.orderBy."""
+input QueryLendersOrderByOrderByClause {
+  """The column that is used for ordering."""
+  column: QueryLendersOrderByColumn!
+
+  """The direction that is used for ordering."""
+  order: SortOrder!
+}
+
+"""Allowed column names for Query.lenders.orderBy."""
+enum QueryLendersOrderByColumn {
+  NAME
+}
+
+"""Order by clause for Query.studentLoanTypes.orderBy."""
+input QueryStudentLoanTypesOrderByOrderByClause {
+  """The column that is used for ordering."""
+  column: QueryStudentLoanTypesOrderByColumn!
+
+  """The direction that is used for ordering."""
+  order: SortOrder!
+}
+
+"""Allowed column names for Query.studentLoanTypes.orderBy."""
+enum QueryStudentLoanTypesOrderByColumn {
+  ROW_ORDER
+}
+
+"""The type of a user entered student loan (e.g. Federal or Private)"""
+type LoanType {
+  id: ID!
+  type: String!
+  display: Boolean!
+}
+
+"""Represents a Medical Specialty for Laurel Road Residency."""
+type LaurelRoadMedicalSpecialty {
+  id: ID!
+  specialty: String!
+  average_residency_duration: Int
+  display: Boolean
+}
+
+"""
+Represents an additional income source types from the MasterIncomeSources enum.
+"""
+type MasterIncomeSource {
+  id: ID!
+  source: String!
+  value: MasterIncomeSources!
+}
+
+"""Represents a US State."""
+type State {
+  state_abbreviation: String!
+}
+
+"""Gets rates for the Review Offer task."""
+type ReviewOfferInfo {
+  rates: [Rate]
+}
+
+type DeniedCosignerInfo {
+  cosignerRelationships: [CosignerRelationship]
+}
+
+type CosignerRelationship {
+  id: ID!
+  relationship: String!
+}
+
+"""Fraud Status response from the Pylon Service."""
+type FraudResponse {
+  fraud_status: FraudStatus!
+  next_step: FraudNextStep
+}
+
+"""Determines a user's fraud status."""
+enum FraudStatus {
+  PASS
+  FAIL
+  OTP
+  IIDQA
+}
+
+"""Determines what is the next step that the user needs to do."""
+enum FraudNextStep {
+  REQUEST_OTP_CODE
+  SUBMIT_OTP_CODE
+  REQUEST_QUESTIONS
+  SUBMIT_ANSWERS
+  SUBMIT_BONUS_ANSWER
+}
+
+type PlaidDataResponse {
+  account: PlaidLinkAccount
+}
+
+type PlaidLinkAccount {
+  id: String
+  verification_status: PlaidVerificationStatus
+}
+
+input PlaidInstitutionsQueryInput {
+  query: String!
+  products: [String!]!
+  options: PlaidInstitutionsQueryInputOptions = null
+}
+
+input PlaidInstitutionsQueryInputOptions {
+  include_optional_metadata: Boolean
+  include_auth_metadata: Boolean
+}
+
+type PlaidInstitutionsQueryResponse {
+  results: [PlaidInstitutionQueryResult!]!
+}
+
+type PlaidInstitutionQueryResult {
+  name: String!
+  institution_id: String!
+  products: [String!]!
+  routing_numbers: [String!]!
+  oauth: Boolean!
+  url: String
+  primary_color: String
+  logo: String
+  supports_instant_auth: Boolean
+  supports_instant_match: Boolean
+  supports_automated_micro_deposits: Boolean
+}
+
+type JobTitle {
+  name: String
+}
+
+type LoanDetailsResponse {
+  disbursementAccount: String
+  disbursementRouting: String
+  firstPaymentDate: String
+  firstPaymentAmount: String
+}
+
+"""
+Offer information for a given offer returned by the affiliate rates API.
+"""
+type RatesAPIBorrowerRateResponse {
+  rate: Float
+  rateType: RateTypes
+  email: String
+  firstName: String
+}
+
+type AffiliateClosedLoanInfo {
+  id: ID!
+  product_id: ID
+  partner_id: ID
+  partner: Partner
+  term: Int
+  rate: Float
+  apr: Float
+  amount: Float
+  type: String
+  closed_date: DateTime
+  external_tracking_id: String
+}
+
+type AllowableTypesBySubtype {
+  subtype: String!
+  allowableTypes: [String!]
+}
+
+type Mutation {
+  """Retrieve the link token for plaid ui from checkers"""
+  plaidLinkToken(input: PlaidLinkTokenInput!): PlaidLinkTokenResponse
+
+  """Used to send the plaid public token to checkers"""
+  registerPlaidPublicToken(input: RegisterPlaidPublicTokenInput!): ID
+
+  """
+  Used to save the ach info from a registeredItem and generate an assets report.
+  """
+  saveIncomeAccount(input: SaveIncomeAccountInput!): SaveIncomeAccountResponse
+
+  """Used to save the ach info and to verify it via achoo."""
+  saveFundingAccount(input: SaveFundingAccountInput!): SaveFundingAccountResponse
+
+  """Deprecated: Register a User and returns a LoanApplication"""
+  signUpUser(input: SignUpUserInput!): LoanApplication
+
+  """Registers a User"""
+  signUpUserShell(input: SignUpUserInput!): User!
+
+  """Updates a User's LoanApplication"""
+  updateApplication(appInput: UpdateApplicationInput!): LoanApplication
+
+  """Creates a LoanApplication"""
+  createApplication(appInput: CreateApplicationInput!): LoanApplication
+
+  """Registers a User from the Rates API"""
+  signUpUserFromApi(input: SignUpUserFromApiInput!): LoanApplication
+
+  """Generates RatesApiResponse for the Rates API"""
+  getRates(input: GetRatesInput!): RatesApiResponse
+
+  """Log in to a new session and get the user."""
+  login(loginInfo: LoginUserInput!): User!
+
+  """Log a user out of their session."""
+  logout: Boolean
+
+  """Send a forgot password email for a user"""
+  forgotPassword(email: ForgotPasswordInput!): Boolean
+
+  """Reset a password for a user given a reset key"""
+  resetPassword(ResetPasswordInfo: ResetPasswordInput!): String
+
+  """Select a rate from the list of rates displayed to borrower"""
+  selectBorrowerRate(input: SelectRateInput!): Boolean
+
+  """
+  Select a rate from the list of rates displayed to borrower and returns the borrower rate.
+  """
+  selectBorrowerRateV2(input: SelectRateInput!): Rate
+
+  """Update a task belonging to the user"""
+  updateTask(input: TaskUpdateInput!): TaskUpdateResponse!
+
+  """Submit the users selected rate"""
+  submitLoanApplication(input: SubmitLoanApplicationInput!): Boolean
+
+  """Submit a platform loan application"""
+  submitPlatformApplication(input: SubmitPlatformApplicationInput!): Boolean
+
+  """Confirm a loan offer"""
+  confirmOffer(input: ConfirmOfferInput!): Boolean
+
+  """Create a rates request"""
+  createRatesRequest(input: CreateRatesRequestInput!): RatesResponse
+
+  """Signup via Affiliate Api"""
+  affiliateSignup(input: AffiliateSignupInput!): AffiliateSignupResponse!
+
+  """Adds Plaid Loans For A Borrower's Application"""
+  addPlaidLoans(input: PlaidLoansInput!): LoanApplication!
+
+  """
+  Create a tracking record for a user/application coming from the affiliates API.
+  """
+  createAffiliateApiRecord(input: CreateAffiliateApiRecordInput!): AffiliateApiRecord!
+
+  """Create partner tracking record for PL affiliate API."""
+  createPartnerTracking(input: CreatePartnerTrackingInput!): PartnerTracking
+
+  """Soft delete a loan on a given loan application"""
+  deleteLoan(input: DeleteLoanInput!): Loan!
+
+  """Restore a loan on a given loan application"""
+  restoreLoan(input: RestoreLoanInput!): Loan!
+
+  """
+  Verifies the SSN retrieved from the Credit Report matches what the user inputs and updates the Personal Info record with the full SSN.
+  """
+  verifySsn(input: VerifySsnInput!): LoanApplication
+
+  """
+  Takes a user self-attested bank account number and routing number and stores it for use by underwriters
+  """
+  createPrimaryIncomeBankingInfoRecord(input: CreatePrimaryIncomeBankingInfoRecordInput!): Boolean
+
+  """Updates user email and confirms their SSN"""
+  confirmApplicationDetails(input: ConfirmApplicationDetailsInput!): LoanApplication
+
+  """Configure Autodebit for an application"""
+  updateAutoDebit(input: UpdateAutoDebitInput!): UpdateAutoDebitResponse! @deprecated(reason: "Prefer update application")
+
+  """Verify that an app's bank account is verified by giact"""
+  verifyAccountStatus(input: VerifyAccountStatusInput!): VerifyAccountStatusResponse!
+
+  """
+  Generates a new OTP Request, Sends the OTP code via the contact_method provided and returns an otp_request_id
+  """
+  otpRequestId(input: OtpRequestIdInput!): OtpRequestResponse
+
+  """
+  Verifies the otp_code provided matches the request_id returned in otpRequestId
+  """
+  verifyOtpCode(input: VerifyOtpCodeInput!): VerifyOtpCodeResponse
+
+  """
+  Get the initial set of questions from Pylon for the Fraud Check IIDQA Flow.
+  """
+  startQAFlow(input: StartQAFlowInput!): StartQAFlowResponse
+
+  """Send answers to Pylon for validation."""
+  validateQAQuestions(input: ValidateQAQuestionInput!): ValidateQAQuestionsResponse
+
+  """Send bonus question answer to Pylon for validation."""
+  validateBonusQuestion(input: ValidateBonusQuestionInput!): ValidateBonusQuestionResponse
+
+  """Create a CreditKarmaRequest record for CK Traffic"""
+  createCreditKarmaRequest(input: CreateCreditKarmaRequestInput!): CreditKarmaRequest
+
+  """Create an ExperianRequest record for Experian Traffic"""
+  createExperianRequest(input: CreateExperianRequestInput!): ExperianRequest
+
+  """Saves user preference for Direct Pay with LOS service"""
+  saveDirectPayUserPreference(input: SaveDirectPayUserPreferenceInput): Boolean
+
+  """Save allocations made to Direct Pay Liabilities"""
+  saveDirectPayAllocations(input: SaveDirectPayAllocationsInput): Boolean
+
+  """Create a top up offer request for the given rate"""
+  createTopUpOfferRequest(input: CreateTopUpOfferRequestInput!): Rate
+}
+
+input PlaidLinkTokenInput {
+  customerId: String!
+  applicationGuid: String!
+  linkCustomizationName: String = "default"
+  products: [String]!
+  sandbox: Boolean = false
+  plaidItemId: ID
+  redirectUrl: String
+
+  """
+  Specifies filter to apply for account subtypes. See https://plaid.com/docs/api/tokens/#link-token-get-response-metadata-account-filters
+  """
+  accountFilters: PlaidLinkAccountFiltersInput
+  auth: PlaidAuthOptionsInput
+  institutionData: PlaidLinkAccountInstitutionDataInput
+}
+
+input PlaidLinkAccountFiltersInput {
+  loan: PlaidLinkAccountFilterInput!
+}
+
+input PlaidLinkAccountFilterInput {
+  account_subtypes: [String]!
+}
+
+input PlaidAuthOptionsInput {
+  automated_microdeposits_enabled: Boolean
+  same_day_microdeposits_enabled: Boolean
+  instant_match_enabled: Boolean
+}
+
+input PlaidLinkAccountInstitutionDataInput {
+  routing_number: String
+}
+
+type PlaidLinkTokenResponse {
+  link_token: String
+  expiration: String
+  request_id: String
+}
+
+input RegisterPlaidPublicTokenInput {
+  customerId: String!
+  applicationGuid: String!
+  publicToken: String!
+  metadata: PlaidLinkSuccessMetadata = null
+}
+
+input PlaidLinkSuccessMetadata {
+  status: String
+  link_session_id: String
+  account_id: String
+  transfer_status: String
+  public_token: String
+  account: PlaidAccount
+  accounts: [PlaidAccounts]
+  institution: PlaidInstitution
+}
+
+input PlaidAccount {
+  id: String
+  name: String
+  mask: String
+  type: String
+  subtype: String
+  verification_status: String
+}
+
+input PlaidAccounts {
+  id: String
+  name: String
+  mask: String
+  type: String
+  subtype: String
+  verification_status: String
+}
+
+input PlaidInstitution {
+  name: String
+  institution_id: String
+}
+
+input SaveIncomeAccountInput {
+  customerId: String!
+  applicationGuid: String!
+  registeredItemId: String!
+}
+
+type SaveIncomeAccountResponse {
+  success: Boolean!
+}
+
+input SaveFundingAccountInput {
+  customerId: String!
+  applicationGuid: String!
+  registeredItemId: String!
+}
+
+type SaveFundingAccountResponse {
+  success: Boolean!
+}
+
+input SignUpUserInput {
+  first_name: String
+  last_name: String
+  email: String!
+  password: String
+  cosignerGuid: String
+  product: String
+  isServiceUser: Boolean
+}
+
+input UpdateApplicationInput {
+  id: ID!
+  total_loan_amount: Float
+  personalInfo: PersonalInfoHasOne
+  educationInfoSingular: EducationInfoHasOne
+  employmentInfoSingular: EmploymentInfoHasOne
+  incomeInfo: IncomeInfoHasMany
+  housingInfo: HousingInfoHasOne
+  loans: LoanInfoHasMany
+  intentToAutopay: IntentToAutopayHasMany
+  resident_or_fellow: Boolean
+  loan_owners: [LoanOwners!]
+  user: UserBelongsTo
+  refinance_reason: String
+  loan_purpose: PersonalLoanPurposes
+  from_API: Boolean
+}
+
+input PersonalInfoHasOne {
+  upsert: PersonalInfoInput
+}
+
+input PersonalInfoInput {
+  id: ID
+  address1: String
+  address2: String
+  city: String
+  state: String
+  zip_code: String
+  phone: String
+  dob: Date
+  months_at_address: Int
+  citizenship: Citizenships
+  ssn: String
+  resident_alien_min_10_years: Boolean
+  permanent_residency_length: PermanentResidencyLengths
+  total_assets: Int
+}
+
+input EducationInfoHasOne {
+  upsert: EducationInfoInput
+}
+
+input EducationInfoInput {
+  id: ID
+  degree_id: ID
+  school_id: ID
+  training_end_date: Date
+  school_state_id: ID
+  school_number_id: ID
+  graduation_month: Int
+  graduation_year: Int
+  title_4_school_id: ID
+  medical_specialty_id: ID
+  medical_resident_fellow: Boolean
+  excessive_residency_reason: String
+  associates_experience: Boolean
+  aggregate_school_id: ID
+  associates_employment_offer: Boolean
+  bachelors_employed_in_healthcare: Boolean
+  bachelors_employed_12_months: Boolean
+}
+
+input EmploymentInfoHasOne {
+  upsert: EmploymentInfoInput
+}
+
+input EmploymentInfoInput {
+  id: ID
+  status: EmploymentStatuses
+  employer_name: String
+  occupation_id: Int
+  phone: String
+  length_of_time_years: Int
+  length_of_time_months: Int
+  pay_months_per_year: Int
+  gross_income: Int
+  job_title: String
+  start_month: Int
+  start_year: Int
+  address: String
+  city: String
+  state_id: Int
+  zip: Int
+  prev_employer_name: String
+  prev_occupation_id: Int
+  prev_job_title: String
+  prev_start_month: Int
+  prev_start_year: Int
+  prev_address: String
+  prev_city: String
+  prev_state_id: Int
+  prev_zip: Int
+  prev_income: Int
+  prev_end_month: Int
+  prev_end_year: Int
+  income_source_id: Int
+  start_date: Date
+  is_travel_pt: Boolean
+}
+
+input IncomeInfoHasMany {
+  upsert: [IncomeInfoInput!]
+}
+
+input IncomeInfoInput {
+  id: ID
+  amount: Int!
+  master_income_source: MasterIncomeSources
+  deleted_at: DateTime
+}
+
+input HousingInfoHasOne {
+  upsert: HousingInfoInput
+}
+
+input HousingInfoInput {
+  id: ID
+  status: HousingStatuses
+  monthly_housing_cost: Int
+  address1: String
+  address2: String
+  city: String
+  state: String
+  zip_code: String
+  previous_address1: String
+  previous_address2: String
+  previous_city: String
+  previous_state: String
+  previous_zip: String
+  length_id: ID
+  previous_length_id: ID
+  comment: String
+}
+
+input LoanInfoHasMany {
+  upsert: [LoanInfoInput]
+}
+
+input LoanInfoInput {
+  id: ID
+  type: LoanTypes!
+  lender_id: ID!
+  servicer_id: ID!
+  account_number: String!
+  balance: Float!
+  balance_to_refi: Float!
+  interest_rate_bp: Int!
+  source: LoanSources
+}
+
+input IntentToAutopayHasMany {
+  upsert: [IntentToAutopayInput]
+}
+
+input IntentToAutopayInput {
+  intends_to_autopay: Boolean!
+  location: AutopayLocations
+}
+
+"""Autopay locations"""
+enum AutopayLocations {
+  """Prequal"""
+  PREQUAL
+
+  """Rates"""
+  RATES
+
+  """Document sign"""
+  DOCUMENT_SIGN
+}
+
+input UserBelongsTo {
+  upsert: UserInput
+}
+
+input UserInput {
+  id: ID
+  first_name: String
+  last_name: String
+  suffix: Suffixes
+}
+
+input CreateApplicationInput {
+  product: Products!
+  cosignerGuid: String
+}
+
+input SignUpUserFromApiInput {
+  request_origin_key: String!
+  first_name: String!
+  last_name: String!
+  email: String!
+}
+
+input GetRatesInput {
+  request_origin_key: String!
+  partner_id: String
+  subpartner_id: String
+  partner_lead_id: String
+  first_name: String!
+  last_name: String!
+  email: String!
+  total_loan_amount: Float!
+  us_citizen: Boolean!
+  school_code: String!
+  degree: String!
+  occupation: String
+  last_change_of_address: Date
+  ssn: String!
+  can_market: Boolean
+  personalInfo: PersonalInfoHasOne!
+  educationInfoSingular: EducationInfoHasOne!
+  employmentInfoSingular: EmploymentInfoHasOne!
+  incomeInfo: IncomeInfoHasMany!
+  housingInfo: HousingInfoHasOne!
+}
+
+type RatesApiResponse {
+  offers: [BorrowerRate]
+  declinedReason: String
+  requestId: String
+}
+
+input LoginUserInput {
+  email: String!
+  password: String!
+}
+
+input ForgotPasswordInput {
+  email: String!
+}
+
+input ResetPasswordInput {
+  key: String!
+  password: String!
+}
+
+input SelectRateInput {
+  application_guid: String!
+  borrower_rate_id: String!
+}
+
+input TaskUpdateInput {
+  id: String!
+  status: String
+  meta: TaskMetaDataInput
+  application_guid: String!
+}
+
+input TaskMetaDataInput {
+  documents: [DocumentMeta]
+  plaidItemId: String
+  verificationStatus: PlaidVerificationStatus
+}
+
+input DocumentMeta {
+  document_format: Int!
+  document_subtype: Int!
+  ids: [Int]
+}
+
+type TaskUpdateResponse {
+  id: String
+  status: String
+  metadata: String
+  tasks: [BorrowerTask]
+}
+
+input SubmitLoanApplicationInput {
+  application_guid: String!
+}
+
+input SubmitPlatformApplicationInput {
+  application_guid: String!
+}
+
+input ConfirmOfferInput {
+  application_guid: String!
+  task_id: String!
+  borrower_rate_id: String!
+}
+
+input CreateRatesRequestInput {
+  application_guid: String!
+}
+
+"""Response from the rates service."""
+type RatesResponse {
+  rates: [Rate]
+  noRatesReasons: [NoRatesReason]
+
+  """The updated loan application after a rates request is completed"""
+  application: LoanApplication
+}
+
+"""Reason for not receiving rates"""
+type NoRatesReason {
+  type: NoRatesReasons
+  info: CreditIssueInfo
+}
+
+"""No rates reasons"""
+enum NoRatesReasons {
+  """No credit profile"""
+  NoCreditProfile
+
+  """Invalid cosigner"""
+  InvalidCosigner
+
+  """Credit issue"""
+  CreditIssue
+
+  """Hard denied"""
+  HardDenied
+
+  """Soft denied"""
+  SoftDenied
+}
+
+"""Represents an issue with a credit profile from a particular bureau"""
+type CreditIssueInfo {
+  source: CreditSources
+  issues: [CreditIssues]
+}
+
+"""Credit sources"""
+enum CreditSources {
+  """Experian"""
+  Experian
+
+  """Trans union"""
+  TransUnion
+
+  """Equifax"""
+  Equifax
+}
+
+"""Credit issues"""
+enum CreditIssues {
+  """Credit freeze"""
+  CreditFreeze
+
+  """Fraud alert"""
+  FraudAlert
+
+  """Insufficient credit"""
+  InsufficientCredit
+
+  """Too many inquiries"""
+  TooManyInquiries
+
+  """California subject selection"""
+  CaliforniaSubjectSelection
+}
+
+input AffiliateSignupInput {
+  password: String!
+  rate_id_encrypted: String!
+}
+
+type AffiliateSignupResponse {
+  product: String!
+  application_guid: String!
+  user: User!
+}
+
+input PlaidLoansInput {
+  access_token: String!
+  application_guid: String!
+}
+
+input CreateAffiliateApiRecordInput {
+  user_id: ID
+  application_id: ID
+  borrower_rates_request_id: ID
+  partner_id: ID
+  partner_tracking_id: ID
+  product_id: ID
+  response_id: ID
+  response_message: String
+  external_tracking_id: String
+}
+
+"""
+Information used to track affiliate api users/applications, which partners they come from, and their basic response.
+"""
+type AffiliateApiRecord {
+  id: ID!
+  user_id: ID
+  application_id: ID
+  borrower_rates_request_id: ID
+  partner_id: ID
+  partner_tracking_id: ID
+  product_id: ID
+  response_id: ID
+  response_message: String
+  external_tracking_id: String
+}
+
+input CreatePartnerTrackingInput {
+  partner_id: ID!
+  subpartner_id: String
+  user_id: ID!
+}
+
+input DeleteLoanInput {
+  id: ID!
+  application_guid: String!
+}
+
+input RestoreLoanInput {
+  id: ID!
+  application_guid: String!
+}
+
+input VerifySsnInput {
+  application_guid: String!
+  ssn: String!
+}
+
+input CreatePrimaryIncomeBankingInfoRecordInput {
+  application_guid: String!
+  account_number: String!
+  routing_number: String!
+  account_type: AchAccountTypes!
+}
+
+input ConfirmApplicationDetailsInput {
+  application_guid: String!
+  ssn: String!
+  email: String!
+}
+
+input UpdateAutoDebitInput {
+  application_guid: String!
+  enabled: Boolean!
+}
+
+type UpdateAutoDebitResponse {
+  success: Boolean!
+}
+
+input VerifyAccountStatusInput {
+  application_guid: String!
+}
+
+type VerifyAccountStatusResponse {
+  account_status: AccountVerificationStatuses
+}
+
+"""Account verification statuses"""
+enum AccountVerificationStatuses {
+  """Verified"""
+  Verified
+
+  """Not verified"""
+  NotVerified
+}
+
+input OtpRequestIdInput {
+  application_guid: String!
+  contact_method: String!
+}
+
+"""
+Pylon response to an otpRequestId query. It includes a request_id which can later be matched 
+with a user inputted otp code in order to verify the phone number. The request_id is a UUID.
+"""
+type OtpRequestResponse {
+  request_id: String
+  request_status: RequestStatus!
+  tps_error: String
+}
+
+enum RequestStatus {
+  OK
+  ERROR
+}
+
+input VerifyOtpCodeInput {
+  application_guid: String!
+  request_id: String!
+  otp_code: String!
+}
+
+"""Pylon response to a verifyOtpCode query. """
+type VerifyOtpCodeResponse {
+  fraud_status: String!
+  otp_result: OtpVerificationResponse!
+}
+
+enum OtpVerificationResponse {
+  AUTHENTICATION_SUCCESS
+  INVALID_PASSCODE
+  AUTHENTICATION_FAILURE
+  INVALID_TRANSACTION
+}
+
+"""Required data to start the IIDQA Flow on Pylon"""
+input StartQAFlowInput {
+  application_guid: String!
+}
+
+"""
+Pylon response including the newly created request_id and the list of questions
+to show to the user.
+"""
+type StartQAFlowResponse {
+  fraud_status: FraudStatus
+  request_id: String
+  questions: QAQuestionSet
+  request_status: RequestStatus!
+  iidqa_result: IidqaResult
+}
+
+"""
+Question set returned from Pylon, includes an identifier and an array of questions
+"""
+type QAQuestionSet {
+  QuestionSetId: String!
+  Questions: [QAQuestion!]!
+}
+
+"""Question to be shown to the user in the QA Flow for Fraud Check"""
+type QAQuestion {
+  QuestionId: String!
+  Key: String!
+  Type: String!
+  Text: QAText!
+  HelpText: QAText
+  Choices: [ResponseChoice!]!
+}
+
+type QAText {
+  Statement: String!
+}
+
+"""
+Choices are the available responses a user can pick when answering an IIDQA question.
+"""
+type ResponseChoice {
+  ChoiceId: String!
+  Text: QAText
+}
+
+enum IidqaResult {
+  BONUS_QUESTION
+  AUTHENTICATION_TIMEOUT
+  AUTHENTICATION_SUCCESS
+  AUTHENTICATION_FAILURE
+  TOO_MANY_REQUESTS
+  DENIAL
+  UNKNOWN
+}
+
+"""Required data to run a validation of the initial batch of questions"""
+input ValidateQAQuestionInput {
+  application_guid: String!
+
+  """The identifier of the initial IIDQA request returned on StartQAFlow."""
+  request_id: String!
+  question_set_id: String!
+  answers: [AnswerQAInput!]!
+}
+
+"""Representation of the answer the user picked on a particular question"""
+input AnswerQAInput {
+  question_id: String!
+  choices: [String!]!
+}
+
+"""
+Includes a fraud_status indicator and an optional set of questions when fraud_status = IIDQA
+"""
+type ValidateQAQuestionsResponse {
+  fraud_status: FraudStatus!
+  request_status: RequestStatus!
+  iidqa_result: IidqaResult!
+  questions: QAQuestionSet
+}
+
+input ValidateBonusQuestionInput {
+  application_guid: String!
+
+  """The identifier of the initial IIDQA request returned on StartQAFlow."""
+  request_id: String!
+  question_set_id: String!
+  answers: [AnswerQAInput!]!
+}
+
+type ValidateBonusQuestionResponse {
+  fraud_status: FraudStatus!
+  request_status: RequestStatus!
+  iidqa_result: IidqaResult!
+}
+
+input CreateCreditKarmaRequestInput {
+  ck_tracking_id: String!
+  request_type: String!
+  offer_amount: CurrencyInput
+  offer_term_months: Int
+  offer_apr_bp: Int
+  income_band: String
+  housing_payment_band: String
+  home_ownership_status: Boolean
+  loan_purpose: String
+  model_id: Int
+  campaign: String
+  approving_model_id: Int
+}
+
+input CurrencyInput {
+  currency_amount: String!
+  currency_code: String!
+}
+
+input CreateExperianRequestInput {
+  experian_tracking_id: String!
+  offer_amount: CurrencyInput
+  offer_total_cost: CurrencyInput
+  offer_monthly_payment: CurrencyInput
+  offer_term_months: Int
+  offer_apr_bp: Int
+}
+
+input SaveDirectPayUserPreferenceInput {
+  application_guid: String!
+  status: DirectPayOptInStatuses!
+}
+
+input SaveDirectPayAllocationsInput {
+  application_guid: String!
+  allocations: [DirectPayAllocationInput!]
+  confirmation: Boolean
+}
+
+input DirectPayAllocationInput {
+  id: String
+  amount_cents: Int
+}
+
+input CreateTopUpOfferRequestInput {
+  borrower_rate_id: String!
+}
+
+"""Occupations"""
+enum Occupations {
+  """Administrative clericalstaff"""
+  Administrative_clericalstaff
+
+  """Agriculture"""
+  Agriculture
+
+  """Banking  financial  insurance services"""
+  Banking_Financial_InsuranceServices
+
+  """Certifiedtrade"""
+  Certifiedtrade
+
+  """Computer  i t"""
+  Computer_IT
+
+  """Cpa"""
+  CPA
+
+  """Doctor  dentist  pharmacist"""
+  Doctor_Dentist_Pharmacist
+
+  """Education"""
+  Education
+
+  """Engineer"""
+  Engineer
+
+  """Entertainment"""
+  Entertainment
+
+  """Executive  senior management"""
+  Executive_SeniorManagement
+
+  """Food service"""
+  FoodService
+
+  """Legal practitioner"""
+  LegalPractitioner
+
+  """Manufacturing"""
+  Manufacturing
+
+  """Military enlisted"""
+  Military_enlisted
+
+  """Military officer"""
+  Military_officer
+
+  """Nurse  healthtechnician"""
+  Nurse_Healthtechnician
+
+  """Other"""
+  Other
+
+  """Othertrade"""
+  Othertrade
+
+  """Phonerepresentative"""
+  Phonerepresentative
+
+  """Sales  retail"""
+  Sales_Retail
+
+  """Selfemployed"""
+  Selfemployed
+
+  """Student"""
+  Student
+
+  """Unemployed no income"""
+  UnemployedNoIncome
+
+  """Unemployed with income"""
+  UnemployedWithIncome
+
+  """Anesthesia assistant"""
+  AnesthesiaAssistant
+
+  """Anesthesiologist assistant"""
+  AnesthesiologistAssistant
+
+  """Anesthetist"""
+  Anesthetist
+
+  """Arnp"""
+  ARNP
+
+  """Associate optometrist"""
+  AssociateOptometrist
+
+  """Audiologist"""
+  Audiologist
+
+  """Certified anesthesiologist assistant"""
+  CertifiedAnesthesiologistAssistant
+
+  """Certified registered nurse anesthetist"""
+  CertifiedRegisteredNurseAnesthetist
+
+  """Chiropractor"""
+  Chiropractor
+
+  """Clinical pharmacy specialist"""
+  ClinicalPharmacySpecialist
+
+  """Clinical training manager"""
+  ClinicalTrainingManager
+
+  """Dentist"""
+  Dentist
+
+  """Dietitian"""
+  Dietitian
+
+  """Hospitalist coordinator"""
+  HospitalistCoordinator
+
+  """Lead clinician"""
+  LeadClinician
+
+  """Managerof clinical services"""
+  ManagerofClinicalServices
+
+  """Medical secretary"""
+  MedicalSecretary
+
+  """Nurse"""
+  Nurse
+
+  """Nurse anesthetist"""
+  NurseAnesthetist
+
+  """Nurse practitioner"""
+  NursePractitioner
+
+  """Ophthalmologist"""
+  Ophthalmologist
+
+  """Optometrist"""
+  Optometrist
+
+  """Oral surgeon"""
+  OralSurgeon
+
+  """Occupational therapist"""
+  OccupationalTherapist
+
+  """Orthodontist"""
+  Orthodontist
+
+  """Patient care manager"""
+  PatientCareManager
+
+  """Pharmacist"""
+  Pharmacist
+
+  """Pharmacy manager"""
+  PharmacyManager
+
+  """Physical therapist"""
+  PhysicalTherapist
+
+  """Physician"""
+  Physician
+
+  """Physician assistant"""
+  PhysicianAssistant
+
+  """Professor medical"""
+  Professor_medical
+
+  """Prosthodontist"""
+  Prosthodontist
+
+  """Psychiatrist"""
+  Psychiatrist
+
+  """Registered nurse"""
+  RegisteredNurse
+
+  """Resident physician"""
+  ResidentPhysician
+
+  """Speech language pathologist"""
+  SpeechLanguagePathologist
+
+  """Veterinarian"""
+  Veterinarian
+
+  """Auto repair"""
+  AutoRepair
+
+  """Construction"""
+  Construction
+}
+
+"""Refinance reasons"""
+enum RefinanceReasons {
+  """Payoff sooner"""
+  PayoffSooner
+
+  """Lower interest"""
+  LowerInterest
+
+  """Lower payment"""
+  LowerPayment
+
+  """Transfer loans"""
+  TransferLoans
+
+  """Not sure"""
+  NotSure
+}
+
+"""Task type"""
+enum TaskTypes {
+  """Identification"""
+  IDENTIFICATION
+
+  """Income"""
+  INCOME
+
+  """Application submit"""
+  APPLICATION_SUBMIT
+
+  """Funding"""
+  FUNDING
+
+  """Review"""
+  REVIEW
+
+  """Sign"""
+  SIGN
+
+  """Document"""
+  DOCUMENT
+
+  """Personal"""
+  PERSONAL
+
+  """Loans"""
+  LOANS
+
+  """Direct pay enrollment"""
+  DIRECT_PAY_ENROLLMENT
+
+  """Direct pay confirmation"""
+  DIRECT_PAY_CONFIRMATION
+}
+
+"""Fraud statuses"""
+enum FraudStatuses {
+  """Low Risk - Pass"""
+  PASS
+
+  """Medium Risk - OTP"""
+  OTP
+
+  """Medium Risk - IIDQA"""
+  IIDQA
+
+  """High Risk - Fail"""
+  FAIL
+}
+
+"""
+Fraud Statuses Pylon can respond with when validating the initial batch of responses.
+PASS = User responded all questions correctly.
+FAIL = User responded incorrectly more questions than the allowed threshold.
+IIDQA = User responded incorrectly but is given an extra question.
+"""
+enum QAValidationStatus {
+  PASS
+  FAIL
+  IIDQA
+}
+
+input SignInUserFromApiInput {
+  request_origin_key: String!
+  email: String!
+}
+
+input applicationID {
+  id: ID!
+}
+
+input AddCosignerInput {
+  application_guid: String!
+  first_name: String!
+  last_name: String!
+  email: String!
+  phone: String!
+  relationship_id: Int!
+}
+
+"""Defines the Rates to be returned to the RatesAPI"""
+type Rates {
+  id: ID!
+  application_id: LoanApplication!
+  term_years: Int!
+  rate_bp: Int!
+  rate_type: String!
+  tier: Int!
+  rate_source_id: RateSource
+  ach_discount_available: Int!
+  ach_discount_active: Int!
+  ach_discount_amount: Int!
+  monthly_payment: Int!
+}
+
+"""
+Aggregate functions when ordering by a relation without specifying a column.
+"""
+enum OrderByRelationAggregateFunction {
+  """Amount of items."""
+  COUNT
+}
+
+"""
+Aggregate functions when ordering by a relation that may specify a column.
+"""
+enum OrderByRelationWithColumnAggregateFunction {
+  """Average."""
+  AVG
+
+  """Minimum."""
+  MIN
+
+  """Maximum."""
+  MAX
+
+  """Sum."""
+  SUM
+
+  """Amount of items."""
+  COUNT
+}
+
+"""Allows ordering a list of records."""
+input OrderByClause {
+  """The column that is used for ordering."""
+  column: String!
+
+  """The direction that is used for ordering."""
+  order: SortOrder!
+}
+
+"""Information about pagination using a fully featured paginator."""
+type PaginatorInfo {
+  """Number of items in the current page."""
+  count: Int!
+
+  """Index of the current page."""
+  currentPage: Int!
+
+  """Index of the first item in the current page."""
+  firstItem: Int
+
+  """Are there more pages after this one?"""
+  hasMorePages: Boolean!
+
+  """Index of the last item in the current page."""
+  lastItem: Int
+
+  """Index of the last available page."""
+  lastPage: Int!
+
+  """Number of items per page."""
+  perPage: Int!
+
+  """Number of total available items."""
+  total: Int!
+}
+
+"""Information about pagination using a simple paginator."""
+type SimplePaginatorInfo {
+  """Number of items in the current page."""
+  count: Int!
+
+  """Index of the current page."""
+  currentPage: Int!
+
+  """Index of the first item in the current page."""
+  firstItem: Int
+
+  """Index of the last item in the current page."""
+  lastItem: Int
+
+  """Number of items per page."""
+  perPage: Int!
+
+  """Are there more pages after this one?"""
+  hasMorePages: Boolean!
+}
+
+"""Information about pagination using a Relay style cursor connection."""
+type PageInfo {
+  """When paginating forwards, are there more items?"""
+  hasNextPage: Boolean!
+
+  """When paginating backwards, are there more items?"""
+  hasPreviousPage: Boolean!
+
+  """The cursor to continue paginating backwards."""
+  startCursor: String
+
+  """The cursor to continue paginating forwards."""
+  endCursor: String
+
+  """Total number of nodes in the paginated connection."""
+  total: Int!
+
+  """Number of nodes in the current page."""
+  count: Int!
+
+  """Index of the current page."""
+  currentPage: Int!
+
+  """Index of the last available page."""
+  lastPage: Int!
+}
+
+"""
+Specify if you want to include or exclude trashed results from a query.
+"""
+enum Trashed {
+  """Only return trashed results."""
+  ONLY
+
+  """Return both trashed and non-trashed results."""
+  WITH
+
+  """Only return non-trashed results."""
+  WITHOUT
+}
