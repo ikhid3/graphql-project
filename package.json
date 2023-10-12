@@ -1,32 +1,41 @@
 {
-  "name": "graphql-mock-server",
+  "name": "graphql-project",
   "scripts": {
     "generate-schema": "NODE_TLS_REJECT_UNAUTHORIZED=0 graphql-codegen -c codegen.yml",
-    "start": "nodemon src/setup/start.ts",
+    "start": "nodemon src/libraries/start.ts --project tsconfig.json",
     "build": "tsc --project tsconfig.json"
   },
   "dependencies": {
     "@apollo/server": "^4.9.0",
     "@graphql-tools/mock": "^9.0.0",
     "@graphql-tools/schema": "^10.0.0",
+    "@tsconfig/node16": "^16.1.1",
     "@whatwg-node/fetch": "^0.9.13",
     "body-parser": "^1.20.2",
     "cors": "^2.8.5",
     "express": "^4.17.21",
-    "graphql": "^15.3.0"
+    "graphql": "^15.3.0",
+    "ts-node": "^10.9.1"
   },
   "devDependencies": {
-    "@graphql-codegen/cli": "^1.17.0",
+    "@graphql-codegen/cli": "^5.0.0",
     "@graphql-codegen/schema-ast": "^1.18.3",
     "@graphql-codegen/typescript": "^1.22.1",
     "@graphql-tools/utils": "^10.0.4",
-    "@tsconfig/node12": "^1.0.7",
     "@types/body-parser": "^1.19.2",
     "@types/cors": "^2.8.13",
     "@types/express": "^4.17.17",
-    "@types/node": "^15.6.1",
+    "@types/node": "^15.14.9",
+    "dependency-cruiser": "^12.9.0",
+    "html-webpack-plugin": "^5.5.0",
     "nodemon": "^3.0.1",
-    "ts-node": "^10.9.1",
-    "typescript": "4.7.4"
+    "typescript": "4.7.4",
+    "webpack": "^5.75.0",
+    "webpack-dev-server": "^4.11.1"
+  },
+  "nodemonConfig": {
+    "events": {
+      "restart": "./dep.sh src"
+    }
   }
 }

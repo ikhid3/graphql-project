@@ -8,7 +8,7 @@ export { resolvers }
 function resolvers(store: IMockStore): IResolvers {
   seedStore(store)
   return {
-    Query: {},
-    Mutations: {}
+    Query: { me: () =>  true},
+    Mutation: { you: () => false }
   }
 }
