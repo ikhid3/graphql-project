@@ -1,1 +1,2 @@
-# graphql-mock-server
+# graphql-project
+Exploration Of GraphQL Development
