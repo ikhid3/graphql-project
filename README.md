@@ -1,1 +1,1 @@
-# graphql-mock-server
+# graphql-project
