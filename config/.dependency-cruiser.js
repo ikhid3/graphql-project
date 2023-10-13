@@ -260,7 +260,7 @@ module.exports = {
        defaults to './tsconfig.json'.
      */
     tsConfig: {
-      fileName: 'tsconfig.json'
+      fileName: './tsconfig.json'
     },
 
     /* Webpack configuration to use to get resolve options from.
@@ -274,7 +274,7 @@ module.exports = {
        for details)
      */
     webpackConfig: {
-     fileName: './webpack.config.js'
+     fileName: './config/webpack.config.js'
     },
 
     /* Babel config ('.babelrc', '.babelrc.json', '.babelrc.json5', ...) to use

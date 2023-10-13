@@ -1,5 +1,5 @@
 generates:
-  src/data/schema.ts:
+  src/api/schema.ts:
     schema:
       - "src/services/**/*.graphql"
     plugins:

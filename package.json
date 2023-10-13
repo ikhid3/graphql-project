@@ -1,9 +1,10 @@
 {
   "name": "graphql-project",
   "scripts": {
-    "generate-schema": "NODE_TLS_REJECT_UNAUTHORIZED=0 graphql-codegen -c codegen.yml",
-    "start": "nodemon src/libraries/start.ts --project tsconfig.json",
-    "build": "tsc --project tsconfig.json"
+    "build:schema": "NODE_TLS_REJECT_UNAUTHORIZED=0 graphql-codegen -c config/codegen.yml",
+    "build:src": "tsc --project tsconfig.json",
+    "build:docs": "scripts/dep.sh",
+    "start": "nodemon src/libraries/start.ts --project tsconfig.json"
   },
   "dependencies": {
     "@apollo/server": "^4.9.0",
@@ -35,7 +36,7 @@
   },
   "nodemonConfig": {
     "events": {
-      "restart": "./dep.sh src"
+      "restart": "npm run build:docs && npm run build:src && npm run build:schema"
     }
   }
 }
