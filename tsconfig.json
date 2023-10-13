@@ -1,14 +1,12 @@
 {
   "extends": "@tsconfig/node16/tsconfig.json",
   "compilerOptions": {
-    "outDir": "build",
     "rootDir": "src",
-    "moduleResolution": "Node16"
+    "outDir": "app",
+    "moduleResolution": "Node16",
+    "noEmit": false
   },
   "include": [
     "src"
-  ],
-  "exclude": [
-    "build"
   ]
 }
