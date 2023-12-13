@@ -24,3 +24,7 @@ export function contextProvider(server: ApolloServer<BaseContext>): e.RequestHan
     })
   }) as RequestHandler<unknown, unknown, unknown, unknown, Record<string, unknown>>
 }
+
+export function createMiddleware(){
+  
+}

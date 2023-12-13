@@ -11,9 +11,10 @@ const options: ListenOptions = {  host: 'localhost', port: 4001, path: '/graphql
 const listener = createHttpListener()
 const server = createHttpServer(listener) 
 const graphql = createGraphQLServer(server)
-
 const middleware: RequestHandler[] = [corsHandler, bodyParser, logger, contextProvider(graphql)]
 
 listener.use(...middleware)
+
 server.listen(options, () => ping(options))
+
 graphql.start()
