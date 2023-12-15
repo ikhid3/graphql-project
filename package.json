@@ -4,7 +4,7 @@
     "build:schema": "NODE_TLS_REJECT_UNAUTHORIZED=0 graphql-codegen -c config/codegen.yml",
     "build:src": "tsc",
     "build:docs": "scripts/dep.sh",
-    "start": "nodemon src/libraries/start.ts --project tsconfig.json"
+    "start": "nodemon src/server/start.ts --project tsconfig.json"
   },
   "dependencies": {
     "@apollo/server": "^4.9.0",

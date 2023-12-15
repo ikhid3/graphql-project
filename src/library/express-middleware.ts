@@ -9,7 +9,7 @@ export const bodyParser = json()
 export const corsHandler = cors<cors.CorsRequest>()
 
 export function logger(req: Request, res: Response, next: NextFunction): void {
-  console.error(req.cookies, req.signedCookies, req.headers.cookie)
+  // console.error(req.cookies, req.signedCookies, req.headers.cookie)
   next()
 }
 
